@@ -1,0 +1,91 @@
+---
+title: ""
+author: "Denis Gasparollo"
+date: "2022-08-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Il datasets presi in considerazione sono 3: 
+
+ * [link](https://espace.library.uq.edu.au/view/UQ:dfe5027) il quale contiene informazioni su data breach e ransomware tra il 2004 e l'inizio del 2020 raccolti dall'università del Queensland;
+ * [link](https://en.wikipedia.org/wiki/List_of_data_breaches), che non è che il risultato di uno scrapping;
+ * [link](https://docs.google.com/spreadsheets/d/1Je-YUdnhjQJO_13r8iTeRxpU2pBKuV6RVRHoYCgiMfg/edit#gid=322165570).
+ 
+Per lo scrapping della pagina vedi script nel file *wiki_scrap.R*. <!--schiarire-->
+
+```{r warning=FALSE, message=FALSE}
+library(readr)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(modelr)
+```
+
+# IMPORT DEI DATI
+
+Il dataset è composto da 43 features e 1145 record.
+
+```{r warning=FALSE, message=FALSE}
+# lettura dati
+queensland <- read_delim("data/dataset.csv", delim = ';', na = "Unknown") %>% subset(select = -...44)
+wiki <- read_csv("data/wiki.csv") %>% subset(select = -Sources)
+data_breaches_2018_update <- read_csv("data/Data Breaches - 2018 update.csv",comment = "#") %>% 
+  subset(select = c(Entity : `1st source link`, `source name`))
+```
+
+Si sfrutta la funzione 'read_delim()' per il fatto che il CSV una il punto e virgola come delimitatore.
+
+## FEATURES
+
+<!--TODO: riduurre la lista solo a features effettivamete utilizzate-->
+* **Year**: anno in cui l'attacco è avvenuto ;
+* **Organisation**: organizzazione attaccata ;
+* **Critical industry**: ;
+* **Organisation size**: dimensione dell'organizzazione ;
+* **Level of digital intensity** ;
+* **Sector**: settore di competenza dell'azienda ;
+* **Country**:  ;
+* **Cyber security role**: ;
+* **Cyber security frameworks** ;
+* **Education and awareness policy** ;
+* **Policy** ;
+* **Prevention, Detection and Recovery** ;
+* **Improper network segmentation** ;
+* **Inappropriate remote access** ;
+* **Absence of encryption**: indicca l'assenza di crittografia;
+* **Detector** ;
+* **Restructuring after attack** ;
+* **Bribe/ransom paid** ;
+* **Free identity or credit theft monitoring** ;
+* **Additional disclosure of information** ;
+* **Number of users affected**: utenti che sono stati colpiti dall'attacco;
+* **Overall nature of attack** ;
+* **Attack type**: descrive il tipo di attacco;
+* **Attacker**: descrive l'attaccante;
+* **Attack vector**: mezzo usato per effettuare l'attacco;
+* **Impact on data** ;
+* **Aspect of Confidentiality-Integrity-Availability triad affected** ;
+* **Individual(s) name(s) leaked/exposed** ;
+* **Address(es) leaked/exposed** ;
+* **Other personally identifiable information (PII) leaked/exposed** ;
+* **Track 1 - Credit card details leaked/exposed** ;
+* **Track 2 - Credit card details leaked/exposed** ;
+* **Social security number/tax number leaked/exposed** ;
+* **Subsequent fraudulent use of data** ;
+* **Investigation** ;
+* **Undertook investigation** ;
+* **Litigation by public** ;
+* **Penalties/settlement paid or actions imposed** ;
+* **Imposed penalties or actions on organisation** ;
+* **Fines issued by government or relevant body** ;
+* **Settlement paid** ;
+* **Effect on share price** ;
+* **Summary**: descrizione dell'attacco ;
+
+# NORMALIZZAZIONE
+```
+
