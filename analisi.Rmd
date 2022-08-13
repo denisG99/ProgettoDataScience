@@ -24,6 +24,7 @@ library(ggplot2)
 library(dplyr)
 library(modelr)
 library(stringr)
+library(corrplot)
 ```
 
 # IMPORT DEI DATI
@@ -32,8 +33,8 @@ Il dataset è composto da 43 features e 1145 record.
 
 ```{r warning=FALSE, message=FALSE}
 # lettura dati
-queensland <- read_delim("data/dataset.csv", delim = ';', na = "Unknown")
-wiki <- read_csv("data/wiki.csv")
+queensland <- read_delim("data/dataset.csv", delim = ';', na = c("Unknown", "Missing", "NA"))
+wiki <- read_csv("data/wiki.csv", na = "unknown")
 data_breaches_2018_update <- read_csv("data/Data Breaches - 2018 update.csv",comment = "#")
 ```
 
@@ -89,34 +90,66 @@ Si sfrutta la funzione 'read_delim()' per il fatto che il CSV una il punto e vir
 
 ## ANALISI FEATURES
 
+Prima di analizzare la correlazione tra coppie di variabili devo convertire le stringhe (variabili categoriali) in valori numerici (variabili quantitativi).
 
-# NORMALIZZAZIONE
+
+Per convertire una variabile categoriale in variabile quantitativa devo convertire il tipo `factor` in `numeric` per riuscire a calvolare la correlazione tra le variabili: per fare ciò devo fare le seguenti conversioni `character` > `factor` > `integer` > `character` > `numeric` per evitare la *type cohercion* nel caso in cui vado a provare ad eseguoire la  conversione da `integer` a `numeric`.
+
+```{r message=FALSE, warning=FALSE}
+#fattorizzazione 'queensland'
+queensland <- queensland %>% mutate(`Number of users affected` = as.numeric(`Number of users affected`))
+
+queensland_factorized <- queensland %>% 
+  mutate_if(is.character, as.factor) %>% 
+  mutate_if(is.factor, unclass) %>%
+  mutate_if(is.integer, as.character) %>%
+  mutate_if(is.character, as.numeric)
+
+#fattorizzazione 'data_breaches_2018_update'
+data_breaches_2018_update_factorized <- data_breaches_2018_update %>%
+  mutate_if(is.character, as.factor) %>% 
+  mutate_if(is.factor, unclass) %>%
+  mutate_if(is.integer, as.character) %>%
+  mutate_if(is.character, as.numeric)
+
+#fattorizzazione 'wiki'
+wiki <- wiki %>% mutate(Year = as.numeric(Year), Records = as.numeric(str_remove_all(wiki$Records, ",")))
+
+wiki_facorized <- wiki %>%
+  mutate_if(is.character, as.factor) %>% 
+  mutate_if(is.factor, unclass) %>%
+  mutate_if(is.integer, as.character) %>%
+  mutate_if(is.character, as.numeric)
+```
+
+
+```{r warning=FALSE, message=FALSE}
+#correlazione 'queensland'
+corrplot.mixed(cor(queensland_factorized), lower = "nunmber", upper = "ellipse")
+```
 
 ```{r}
-#normalizzazione dataset 'queensland'
-queensland %>% select(`Effect on share price`) %>%
-  group_by(`Effect on share price`) %>%
-  summarise(n = n())
+#correlazione 'data_breaches_2018_update'
+corrplot.mixed(cor(data_breaches_2018_update), lower = "nunmber", upper = "ellipse")
 ```
 
-Visto che ho molte osservazioni *NA* vado a la variabile dalla tabella la quale non mi permette una quantità di dati significativa per ricavare informazioni aggiuntive
+```{r}
+#correlazione 'data_breaches_2018_update'
+corrplot.mixed(cor(data_breaches_2018_update), lower = "nunmber", upper = "ellipse")
+```
 
-```{r warning=FALSE, message=FALSE}
+
+#NORMALIZZAZIONE
+
+```{r message=FALSE, warning=FALSE}
 queensland <- queensland %>% select(c(-...44, -`Effect on share price`, -`Overall nature of attack`))
-```
-
-
-```{r warning=FALSE, message=FALSE}
-#normalizzazione dataset 'wiki'
 wiki <- wiki %>% select(-Sources)
-```
-
-```{r warning=FALSE, message=FALSE}
-#normalizzazione dataset 'data_breaches_2018_update'
 data_breaches_2018_update <- data_breaches_2018_update %>% 
   select(c(Entity : `1st source link`, `source name`, -YEAR, -`NO OF RECORDS STOLEN`)) %>%
   rename(YEAR = `YEAR(2)`)
 ```
+
+<!--Sscrivere commento inerente alle variabili escluse-->
 
 # DOMANDE
 1. Come sono cresciuti gli attacchi con il passare degli anni?
