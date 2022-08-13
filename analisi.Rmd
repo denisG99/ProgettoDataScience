@@ -1,5 +1,5 @@
 ---
-title: ""
+title: "Progetto di Fondamenti di Scienza dei Dati"
 author: "Denis Gasparollo"
 date: "2022-08-01"
 output: html_document
@@ -23,6 +23,7 @@ library(tidyr)
 library(ggplot2)
 library(dplyr)
 library(modelr)
+library(stringr)
 ```
 
 # IMPORT DEI DATI
@@ -31,14 +32,14 @@ Il dataset è composto da 43 features e 1145 record.
 
 ```{r warning=FALSE, message=FALSE}
 # lettura dati
-queensland <- read_delim("data/dataset.csv", delim = ';', na = "Unknown") %>% subset(select = -...44)
-wiki <- read_csv("data/wiki.csv") %>% subset(select = -Sources)
-data_breaches_2018_update <- read_csv("data/Data Breaches - 2018 update.csv",comment = "#") %>% 
-  subset(select = c(Entity : `1st source link`, `source name`))
+queensland <- read_delim("data/dataset.csv", delim = ';', na = "Unknown")
+wiki <- read_csv("data/wiki.csv")
+data_breaches_2018_update <- read_csv("data/Data Breaches - 2018 update.csv",comment = "#")
 ```
 
 Si sfrutta la funzione 'read_delim()' per il fatto che il CSV una il punto e virgola come delimitatore.
 
+<!--TODO: descrivere i dataset-->
 ## FEATURES
 
 <!--TODO: riduurre la lista solo a features effettivamete utilizzate-->
@@ -86,6 +87,97 @@ Si sfrutta la funzione 'read_delim()' per il fatto che il CSV una il punto e vir
 * **Effect on share price** ;
 * **Summary**: descrizione dell'attacco ;
 
+## ANALISI FEATURES
+
+
 # NORMALIZZAZIONE
+
+```{r}
+#normalizzazione dataset 'queensland'
+queensland %>% select(`Effect on share price`) %>%
+  group_by(`Effect on share price`) %>%
+  summarise(n = n())
 ```
 
+Visto che ho molte osservazioni *NA* vado a la variabile dalla tabella la quale non mi permette una quantità di dati significativa per ricavare informazioni aggiuntive
+
+```{r warning=FALSE, message=FALSE}
+queensland <- queensland %>% select(c(-...44, -`Effect on share price`, -`Overall nature of attack`))
+```
+
+
+```{r warning=FALSE, message=FALSE}
+#normalizzazione dataset 'wiki'
+wiki <- wiki %>% select(-Sources)
+```
+
+```{r warning=FALSE, message=FALSE}
+#normalizzazione dataset 'data_breaches_2018_update'
+data_breaches_2018_update <- data_breaches_2018_update %>% 
+  select(c(Entity : `1st source link`, `source name`, -YEAR, -`NO OF RECORDS STOLEN`)) %>%
+  rename(YEAR = `YEAR(2)`)
+```
+
+# DOMANDE
+1. Come sono cresciuti gli attacchi con il passare degli anni?
+2. Qual'è il settore che è stato maggiormente colpito?
+
+## Come sono cresciuti col passare gli anni gil attacchi?
+Dai 3 dataset vado ad estrarre le features che riguardano il nome dell'azienda che è stata vittima dell'attacco o data-breach, l'anno, il paese, il settore di competenza e le tecniche di attacco.
+Lo scopo di estrarre tali features è andare a studiare la crescita o la diminuzione del numero di attacchi.
+```{r warning=FALSE, message=FALSE}
+split_date <- function(){
+  res <- list()
+  
+  for(year in wiki_attacks$Year)
+    res <- c(res, as.numeric(str_split(year, "-")[[1]][1]))
+  return(unlist(res))
+}
+```
+
+
+```{r warning=FALSE, message=FALSE}
+wiki_attacks <- wiki %>% select(c(Year, Entity, `Organization type`, Method)) %>%
+  rename(Sector = `Organization type`, `Attack type` = Method)
+wiki_attacks <- wiki_attacks %>% mutate(Year = split_date())
+
+data_breaches_2018_update_attacks <- data_breaches_2018_update %>% 
+  select(c(YEAR, Entity, ORGANISATION, `METHOD OF LEAK`)) %>%
+  rename(Year = YEAR, Sector = ORGANISATION, `Attack type` = `METHOD OF LEAK`)
+
+queensland_attacks <- queensland %>% select(c(Year, Organisation, Sector, `Attack type`)) %>%
+  rename(Entity = Organisation)
+
+attacks <- union_all(union_all(wiki_attacks, data_breaches_2018_update_attacks), queensland_attacks)
+```
+
+```{r warning=FALSE, message=FALSE}
+#grafico andamento del numero di attacchi in funzione del tempo
+attack_year <- attacks %>% group_by(Year) %>%
+  summarise(attack = n())
+
+ggplot(attack_year, aes(x = Year, y = attack, )) + 
+  geom_line()
+  
+```
+<!--da fare analisi-->
+
+## Qual'è il settore che è stato maggiormente colpito?
+
+```{r warning=FALSE, message=FALSE}
+#grafico andamento del numero di attacchi in funzione al settore
+records <- dim(attacks)[1]
+
+attack_sector <- attacks %>%
+  group_by(Sector) %>%
+  summarise(attacks = n()) %>%
+  filter(attacks > 30) %>%
+  arrange(-attacks)
+
+attack_sector %>% ggplot() +
+  geom_bar(aes(x = "", y = attacks, fill = Sector), stat = "identity", color = "white") +
+  #annotate("text", x = "", y = attacks, label = Sector) +
+  coord_polar("y", start = 0) +
+  theme_void()
+```
+<!--da fare analisi-->
