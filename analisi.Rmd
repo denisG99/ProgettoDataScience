@@ -88,57 +88,6 @@ Si sfrutta la funzione 'read_delim()' per il fatto che il CSV una il punto e vir
 * **Effect on share price** ;
 * **Summary**: descrizione dell'attacco ;
 
-## ANALISI FEATURES
-
-Prima di analizzare la correlazione tra coppie di variabili devo convertire le stringhe (variabili categoriali) in valori numerici (variabili quantitativi).
-
-
-Per convertire una variabile categoriale in variabile quantitativa devo convertire il tipo `factor` in `numeric` per riuscire a calvolare la correlazione tra le variabili: per fare ciò devo fare le seguenti conversioni `character` > `factor` > `integer` > `character` > `numeric` per evitare la *type cohercion* nel caso in cui vado a provare ad eseguoire la  conversione da `integer` a `numeric`.
-
-```{r message=FALSE, warning=FALSE}
-#fattorizzazione 'queensland'
-queensland <- queensland %>% mutate(`Number of users affected` = as.numeric(`Number of users affected`))
-
-queensland_factorized <- queensland %>% 
-  mutate_if(is.character, as.factor) %>% 
-  mutate_if(is.factor, unclass) %>%
-  mutate_if(is.integer, as.character) %>%
-  mutate_if(is.character, as.numeric)
-
-#fattorizzazione 'data_breaches_2018_update'
-data_breaches_2018_update_factorized <- data_breaches_2018_update %>%
-  mutate_if(is.character, as.factor) %>% 
-  mutate_if(is.factor, unclass) %>%
-  mutate_if(is.integer, as.character) %>%
-  mutate_if(is.character, as.numeric)
-
-#fattorizzazione 'wiki'
-wiki <- wiki %>% mutate(Year = as.numeric(Year), Records = as.numeric(str_remove_all(wiki$Records, ",")))
-
-wiki_facorized <- wiki %>%
-  mutate_if(is.character, as.factor) %>% 
-  mutate_if(is.factor, unclass) %>%
-  mutate_if(is.integer, as.character) %>%
-  mutate_if(is.character, as.numeric)
-```
-
-
-```{r warning=FALSE, message=FALSE}
-#correlazione 'queensland'
-corrplot.mixed(cor(queensland_factorized), lower = "nunmber", upper = "ellipse")
-```
-
-```{r}
-#correlazione 'data_breaches_2018_update'
-corrplot.mixed(cor(data_breaches_2018_update), lower = "nunmber", upper = "ellipse")
-```
-
-```{r}
-#correlazione 'data_breaches_2018_update'
-corrplot.mixed(cor(data_breaches_2018_update), lower = "nunmber", upper = "ellipse")
-```
-
-
 #NORMALIZZAZIONE
 
 ```{r message=FALSE, warning=FALSE}
@@ -147,6 +96,9 @@ wiki <- wiki %>% select(-Sources)
 data_breaches_2018_update <- data_breaches_2018_update %>% 
   select(c(Entity : `1st source link`, `source name`, -YEAR, -`NO OF RECORDS STOLEN`)) %>%
   rename(YEAR = `YEAR(2)`)
+
+queensland <- queensland %>% mutate(`Number of users affected` = as.numeric(`Number of users affected`))
+wiki <- wiki %>% mutate(Year = as.numeric(Year), Records = as.numeric(str_remove_all(wiki$Records, ",")))
 ```
 
 <!--Sscrivere commento inerente alle variabili escluse-->
@@ -154,6 +106,9 @@ data_breaches_2018_update <- data_breaches_2018_update %>%
 # DOMANDE
 1. Come sono cresciuti gli attacchi con il passare degli anni?
 2. Qual'è il settore che è stato maggiormente colpito?
+3. Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
+4. Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
+
 
 ## Come sono cresciuti col passare gli anni gil attacchi?
 Dai 3 dataset vado ad estrarre le features che riguardano il nome dell'azienda che è stata vittima dell'attacco o data-breach, l'anno, il paese, il settore di competenza e le tecniche di attacco.
@@ -170,18 +125,19 @@ split_date <- function(){
 
 
 ```{r warning=FALSE, message=FALSE}
-wiki_attacks <- wiki %>% select(c(Year, Entity, `Organization type`, Method)) %>%
+wiki_attacks <- wiki %>% select(c(Year, Entity, `Organization type`, Method, Records)) %>%
   rename(Sector = `Organization type`, `Attack type` = Method)
 wiki_attacks <- wiki_attacks %>% mutate(Year = split_date())
 
 data_breaches_2018_update_attacks <- data_breaches_2018_update %>% 
-  select(c(YEAR, Entity, ORGANISATION, `METHOD OF LEAK`)) %>%
-  rename(Year = YEAR, Sector = ORGANISATION, `Attack type` = `METHOD OF LEAK`)
+  select(c(YEAR, Entity, ORGANISATION, `METHOD OF LEAK`, `records lost`)) %>%
+  rename(Year = YEAR, Sector = ORGANISATION, `Attack type` = `METHOD OF LEAK`, Records = `records lost`)
 
-queensland_attacks <- queensland %>% select(c(Year, Organisation, Sector, `Attack type`)) %>%
-  rename(Entity = Organisation)
+queensland_attacks <- queensland %>% select(c(Year, Organisation, Sector, `Attack type`, `Number of users affected`)) %>%
+  rename(Entity = Organisation, Records = `Number of users affected`)
 
-attacks <- union_all(union_all(wiki_attacks, data_breaches_2018_update_attacks), queensland_attacks)
+attacks <- union_all(union_all(wiki_attacks, data_breaches_2018_update_attacks), queensland_attacks) %>%
+  filter(!is.na(Year))
 ```
 
 ```{r warning=FALSE, message=FALSE}
@@ -213,4 +169,24 @@ attack_sector %>% ggplot() +
   coord_polar("y", start = 0) +
   theme_void()
 ```
-<!--da fare analisi-->
+<!--da fare analisi, trovare spiegazione perchè proprio quel settore-->
+
+## Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
+
+```{r warning=FALSE, message=FALSE}
+attacks %>% group_by(Year) %>%
+  summarise(median = median(Records, na.rm = TRUE))
+```
+
+```{r warning=FALSE, message=FALSE}
+attacks  %>% filter(Year > 2004 & Records < 10000000) %>%
+  mutate(Year = as.character(Year)) %>%
+  ggplot(aes(x = Year, y = Records, )) +
+  geom_boxplot(na.rm = TRUE) +
+  theme_classic()
+```
+<!--realizzare ananlisi -->
+ <!--vedere legame presente tra il numero di record estratti e la dimensione dell'azienda / dimensione dell'azienda (confronta demo diamonds.Rmd)-->
+
+## Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
+
