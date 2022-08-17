@@ -25,6 +25,7 @@ library(dplyr)
 library(modelr)
 library(stringr)
 library(corrplot)
+library(rcompanion)
 ```
 
 # IMPORT DEI DATI
@@ -179,14 +180,60 @@ attacks %>% group_by(Year) %>%
 ```
 
 ```{r warning=FALSE, message=FALSE}
-attacks  %>% filter(Year > 2004 & Records < 10000000) %>%
+attacks  %>% filter(Records < 10000000) %>%
   mutate(Year = as.character(Year)) %>%
   ggplot(aes(x = Year, y = Records, )) +
   geom_boxplot(na.rm = TRUE) +
   theme_classic()
 ```
 <!--realizzare ananlisi -->
- <!--vedere legame presente tra il numero di record estratti e la dimensione dell'azienda / dimensione dell'azienda (confronta demo diamonds.Rmd)-->
+ <!--vedere legame presente tra il numero di record estratti e la dimensione dell'organizzazione / livello di digital intensity / data sensitivity (confronta demo diamonds.Rmd)-->
 
 ## Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
+
+```{r warning=FALSE, message=FALSE}
+sec_conseguences <- queensland %>% select(c(`Cyber security role` : `Absence of encryption`, 
+                                            `Restructuring after attack` : `Free identity or credit theft monitoring`,
+                                            `Individual(s) name(s) leaked/exposed` : `Subsequent fraudulent use of data`,
+                                            `Undertook investigation` : `Settlement paid`,
+                                            -`Prevention, Detection and Recovery`))
+
+sec_system <- sec_conseguences %>% select(c(`Cyber security role` : `Absence of encryption`, 
+                                            `Restructuring after attack` : `Free identity or credit theft monitoring`))
+consequences <- sec_conseguences %>% select(c(`Individual(s) name(s) leaked/exposed` : `Subsequent fraudulent use of data`,
+                                              `Undertook investigation` : `Settlement paid`))
+```
+
+```{r warning=FALSE, message=FALSE}
+sec_conseguences_occurs <- matrix(0, nrow = 10, ncol = 13)
+rownames(sec_conseguences_occurs) <- c(names(sec_conseguences)[1 : 10])
+colnames(sec_conseguences_occurs) <- c(names(sec_conseguences)[11 : 23])
+```
+
+```{r warning=FALSE, message=FALSE}
+# vedere se si riesce usando funzione apply
+for (row in names(sec_conseguences)[1 : 10]){
+  for (col in names(sec_conseguences)[11 : 23]){
+    sec_conseguences_occurs[row, col] <- dim(sec_conseguences %>% select(c(row, col)) %>% 
+          filter(!!as.symbol(row) == 'Yes' & !!as.symbol(col) =='Yes'))[1]
+  }
+}
+```
+<!--inserire spiegazione !! prima della comversione di tipo-->
+
+```{r warning=FALSE, message=FALSE}
+cramerV(sec_conseguences_occurs)
+```
+
+```{r warning=FALSE, message=FALSE}
+cramerV_table <-  matrix(0, nrow = 10, ncol = 13)
+rownames(cramerV_table) <- c(names(sec_conseguences)[1 : 10])
+colnames(cramerV_table) <- c(names(sec_conseguences)[11 : 23])
+
+for (row in names(sec_conseguences)[1 : 10])
+  for (col in names(sec_conseguences)[11 : 23])
+    cramerV_table[row, col] <- cramerV(table(unlist(sec_conseguences[row]), unlist(sec_conseguences[col])))
+
+View(cramerV_table)
+```
 
