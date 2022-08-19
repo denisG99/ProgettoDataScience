@@ -24,10 +24,9 @@ library(ggplot2)
 library(dplyr)
 library(modelr)
 library(stringr)
-library(corrplot)
-library(rcompanion)
-library(modelr)
-library(nnet)
+#library(rcompanion)
+#library(nnet)
+library(gridExtra)
 ```
 
 # IMPORT DEI DATI
@@ -176,33 +175,36 @@ attack_sector %>% ggplot() +
 ```
 <!--da fare analisi, trovare spiegazione perchè proprio quel settore-->
 ```{r warning=FALSE, message=FALSE}
-health <- queensland %>% filter(Sector == "Human health activities")
-health_sec_system <- health %>% select(`Cyber security role` : `Additional disclosure of information`) 
+health <- queensland %>% filter(Sector == "Human health activities") %>%
+    select(c(`Critical Industry`, 
+             `Organisation size`,
+             `Level of digital intensity`,
+             `Cyber security role` : `Additional disclosure of information`,
+             -Detector))
 ```
 
 ```{r warning=FALSE, message=FALSE}
-(health %>% group_by(`Critical Industry`) %>%
-   summarise(count = n()))
+#TODO: vedere se è sostituibile con lapply
+##TODO: vedere colori
+plots <- list()
 
-(health %>% filter(!is.na(`Organisation size`)) %>%
-    group_by(`Organisation size`) %>%
-    summarise(count = n()))
-
-(health %>% group_by(`Level of digital intensity`) %>%
-   summarise(count = n()))
-
-for (feature in names(health_sec_system)) {
-  health_sec_system %>% filter(!is.na(!!as.symbol(feature))) %>%
+for (feature in names(health)) {
+  plots[[feature]] <- health %>% filter(!is.na(!!as.symbol(feature))) %>%
     group_by(!!as.symbol(feature)) %>% 
-    summarise(count = n()) %>%
+    ggplot(aes(x = !!as.symbol(feature), fill = feature)) +
+    scale_fill_manual(values = c("Yes" = "green",
+                                 "No" = "red",
+                                 "Small" = "red",
+                                 "Low-Medium" = "orange",
+                                 "Medium" = "cyan",
+                                 "High" = "green")) +
+    geom_bar() +
+    theme_classic() +
+    theme(text = element_text(size = 10), legend.position = "none")
 }
 
-ggplot(aes(x = !!as.symbol(feature))) +
-    geom_bar()+
-    facet_grid(scales = "free_x")
-
+do.call("grid.arrange", c(plots, ncol = 4))
 ```
-
 <!--da scrivere analisi-->
 
 ## Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
@@ -220,7 +222,7 @@ attacks  %>% filter(Records < 10000000) %>%
   theme_classic()
 ```
 <!--realizzare ananlisi -->
- <!--vedere legame presente tra il numero di record estratti e la dimensione dell'organizzazione / livello di digital intensity / data sensitivity (confronta demo diamonds.Rmd)-->
+
 ```{r warning=FALSE, message=FALSE}
 #Organization size - Number of users affected
 queensland  %>% filter(`Number of users affected` < 1000000 & !is.na(`Organisation size`)) %>%
@@ -249,6 +251,7 @@ data_breaches_2018_update  %>% mutate(`DATA SENSITIVITY` = as.character(`DATA SE
   theme_classic()
 ```
 <!--inserire analisi-->
+<!--forse va tolto-->
 
 Dall'analisi fatta sopra si vede che l'unica ad influenzare la quantità di dati esfiltrati da un data breach è la dimensione dell'azienda.
 
@@ -257,16 +260,23 @@ Per verificare se c'è una relazione di qualche tipo tra anno e quantità di rec
 ```{r warning=FALSE, message=FALSE}
 #TODO: da sistemare
 queensland_factorized <- queensland %>%
-  select(`Organisation size`, `Number of users affected`) %>%
-  filter(!is.na(`Number of users affected`)) %>%
-  filter(!is.na(`Organisation size`)) %>%
+   select(Year, `Organisation size`, `Number of users affected`) %>%
    mutate_if(is.character, as.factor) %>% 
    mutate_if(is.factor, unclass) %>%
    mutate_if(is.integer, as.character) %>%
    mutate_if(is.character, as.numeric)
 
-model <- multinom(`Organisation size` ~ `Number of users affected`, data = queensland_factorized)
-predict(model)
+model <- lm(`Organisation size` ~ `Number of users affected`, data = queensland_factorized)
+#model <- multinom(`Organisation size` ~ `Number of users affected`, data = queensland_factorized)
+queensland_factorized <- add_predictions(queensland_factorized, model)
+queensland_factorized <- add_residuals(queensland_factorized, model)
+```
+
+```{r warning=FALSE, message=FALSE}
+queensland_factorized  %>% mutate(Year = as.character(Year)) %>% 
+  ggplot(aes(x = Year, y = resid), na.rm = TRUE) +
+  geom_ref_line(h = 0)
+  geom_boxplot(na.rm = TRUE)
 ```
 
 
