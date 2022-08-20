@@ -1,7 +1,7 @@
 ---
 title: "Progetto di Fondamenti di Scienza dei Dati"
 author: "Denis Gasparollo"
-date: "2022-08-01"
+date: "2022-09-01"
 output: html_document
 ---
 
@@ -9,13 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Il datasets presi in considerazione sono 3: 
+Il datasets presi in considerazione sono 3 e trattano principalmete i data breach avvenuti tra il 2004 e il 2020: 
 
  * [link](https://espace.library.uq.edu.au/view/UQ:dfe5027) il quale contiene informazioni su data breach e ransomware tra il 2004 e l'inizio del 2020 raccolti dall'università del Queensland;
- * [link](https://en.wikipedia.org/wiki/List_of_data_breaches), che non è che il risultato di uno scrapping;
+ * [link](https://en.wikipedia.org/wiki/List_of_data_breaches), che non è che il risultato di uno scrapping (per lo scrapping della pagina vedi script nel file *wiki_scrap.R*);
  * [link](https://docs.google.com/spreadsheets/d/1Je-YUdnhjQJO_13r8iTeRxpU2pBKuV6RVRHoYCgiMfg/edit#gid=322165570).
- 
-Per lo scrapping della pagina vedi script nel file *wiki_scrap.R*. <!--schiarire-->
+
+Il secondo e il terzo dataset sono quelli più semplici e contengono informazioni generali di un attacco, ad esempio anno, nome dell'azienda, quantità di record rubati, ecc, invece il primo può essere suddiviso in 4 sezioni: la prima riguarda una sorta di profilo dell'azienda a livello generale (nome dell'azieda, dimensione dell'azienda, il settore, ...), la secondo contiene le carattereristiche dell'attacco (data, record rubati, tipo e vettore di attacco), la terza contiene i sistemi di sicurezza implementati nel sistema informatico e, infine, la quarta e ultima sezione contiene le conseguenze dell'attacco (se è avvenuto o meno un leak di qualche tipo di informazione esfiltrata dall'azienda, se ci sono stati provvedimenti di qualunque tipo, ...).
 
 ```{r warning=FALSE, message=FALSE}
 library(readr)
@@ -24,14 +24,14 @@ library(ggplot2)
 library(dplyr)
 library(modelr)
 library(stringr)
-#library(rcompanion)
+library(rcompanion)
 #library(nnet)
 library(gridExtra)
 ```
 
 # IMPORT DEI DATI
 
-Il dataset è composto da 43 features e 1145 record.
+Il primo dataset è composto da 43 features e 1145 osservazioni, il sencondo da 6 features e 353 osservazioni e l'ultimo da 19 features e 263 osservazioni.
 
 ```{r warning=FALSE, message=FALSE}
 # lettura dati
@@ -42,68 +42,51 @@ data_breaches_2018_update <- read_csv("data/Data Breaches - 2018 update.csv",com
 
 Si sfrutta la funzione 'read_delim()' per il fatto che il CSV una il punto e virgola come delimitatore.
 
-<!--TODO: descrivere i dataset-->
 ## FEATURES
+```{r}
+names(queensland)
+```
 
-<!--TODO: riduurre la lista solo a features effettivamete utilizzate-->
-* **Year**: anno in cui l'attacco è avvenuto ;
-* **Organisation**: organizzazione attaccata ;
-* **Critical industry**: ;
-* **Organisation size**: dimensione dell'organizzazione ;
-* **Level of digital intensity** ;
-* **Sector**: settore di competenza dell'azienda ;
-* **Country**:  ;
-* **Cyber security role**: ;
-* **Cyber security frameworks** ;
-* **Education and awareness policy** ;
-* **Policy** ;
-* **Prevention, Detection and Recovery** ;
-* **Improper network segmentation** ;
-* **Inappropriate remote access** ;
-* **Absence of encryption**: indicca l'assenza di crittografia;
-* **Detector** ;
-* **Restructuring after attack** ;
-* **Bribe/ransom paid** ;
-* **Free identity or credit theft monitoring** ;
-* **Additional disclosure of information** ;
-* **Number of users affected**: utenti che sono stati colpiti dall'attacco;
-* **Overall nature of attack** ;
-* **Attack type**: descrive il tipo di attacco;
-* **Attacker**: descrive l'attaccante;
-* **Attack vector**: mezzo usato per effettuare l'attacco;
-* **Impact on data** ;
-* **Aspect of Confidentiality-Integrity-Availability triad affected** ;
-* **Individual(s) name(s) leaked/exposed** ;
-* **Address(es) leaked/exposed** ;
-* **Other personally identifiable information (PII) leaked/exposed** ;
-* **Track 1 - Credit card details leaked/exposed** ;
-* **Track 2 - Credit card details leaked/exposed** ;
-* **Social security number/tax number leaked/exposed** ;
-* **Subsequent fraudulent use of data** ;
-* **Investigation** ;
-* **Undertook investigation** ;
-* **Litigation by public** ;
-* **Penalties/settlement paid or actions imposed** ;
-* **Imposed penalties or actions on organisation** ;
-* **Fines issued by government or relevant body** ;
-* **Settlement paid** ;
-* **Effect on share price** ;
-* **Summary**: descrizione dell'attacco ;
+```{r}
+names(wiki)
+```
 
-#NORMALIZZAZIONE
+```{r}
+names(data_breaches_2018_update)
+```
+
+# NORMALIZZAZIONE
 
 ```{r message=FALSE, warning=FALSE}
-queensland <- queensland %>% select(c(-...44, -`Effect on share price`, -`Overall nature of attack`))
+queensland %>% group_by(`Effect on share price`) %>%
+  summarise(count = n())
+```
+
+```{r message=FALSE, warning=FALSE}
+queensland <- queensland %>% select(c(-...44, -`Effect on share price`, -`Overall nature of attack`)) %>%
+  mutate(`Number of users affected` = as.numeric(`Number of users affected`))
+```
+
+* *Overall nature of attack* è stato escluso perchè non è chiaro cosa indicano i valori per quel campo;
+* *...44* è un errore di esportazione a csv dal foglio excell;
+* *Effect on share price* non ci sono  molti valori non disponibili.
+
+```{r message=FALSE, warning=FALSE}
 wiki <- wiki %>% select(-Sources)
+```
+
+* *Sources* è stato escluso perchè contiene collegmaneti ipertestuali
+
+```{r message=FALSE, warning=FALSE}
 data_breaches_2018_update <- data_breaches_2018_update %>% 
   select(c(Entity : `1st source link`, `source name`, -YEAR, -`NO OF RECORDS STOLEN`)) %>%
   rename(YEAR = `YEAR(2)`)
-
-queensland <- queensland %>% mutate(`Number of users affected` = as.numeric(`Number of users affected`))
-wiki <- wiki %>% mutate(Year = as.numeric(Year), Records = as.numeric(str_remove_all(wiki$Records, ",")))
 ```
 
-<!--Sscrivere commento inerente alle variabili escluse-->
+* *NO OF RECORDS STOLEN* è stato tolto perchè si ripete con il campo *record lost*;
+* *YEAR* è stato rimosso perchè fornisce una rappresentazione alternativa per l'anno: valore numerico compreso tra 0 (2004) e 14 (2018);
+* *interesting story*, *UNUSED...16*, *UNUSED...17* e *Exclude* vengono esclusi perchè per la maggior parte delle osservazioni i valori non sono disponibili;
+* *...19* è un errore di esportazione a csv dal foglio excell.
 
 # DOMANDE
 1. Come sono cresciuti gli attacchi con il passare degli anni?
@@ -111,25 +94,35 @@ wiki <- wiki %>% mutate(Year = as.numeric(Year), Records = as.numeric(str_remove
 3. Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
 4. Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
 
-
 ## Come sono cresciuti col passare gli anni gil attacchi?
-Dai 3 dataset vado ad estrarre le features che riguardano il nome dell'azienda che è stata vittima dell'attacco o data-breach, l'anno, il paese, il settore di competenza e le tecniche di attacco.
-Lo scopo di estrarre tali features è andare a studiare la crescita o la diminuzione del numero di attacchi.
+
 ```{r warning=FALSE, message=FALSE}
 split_date <- function(){
   res <- list()
   
-  for(year in wiki_attacks$Year)
+  for(year in wiki$Year)
     res <- c(res, as.numeric(str_split(year, "-")[[1]][1]))
+  
   return(unlist(res))
 }
 ```
 
+La funzione descritta in precedenza serve nel caso in cui l'anno di avvenimento dell'attacco non è definito da un singolo anno ma da due anni separati del carattere "-" (come mostrato di seguito), per il fatto che probabilemete tale attacco è avvenuto a cavallo degli anni espressi, e prendo in considerazione solo l'anno in cui è iniziato l'atacco.
+
+```{r}
+wiki %>% select(Year) %>%
+  filter(nchar(Year) > 4)
+```
+
+Dai 3 dataset vado ad estrarre le features che riguardano il nome dell'azienda che è stata vittima dell'attacco o data-breach, l'anno, il paese, il settore di competenza e le tecniche di attacco.
+Lo scopo di estrarre tali features è andare a studiare la crescita o la diminuzione del numero di attacchi.
+
 
 ```{r warning=FALSE, message=FALSE}
 wiki_attacks <- wiki %>% select(c(Year, Entity, `Organization type`, Method, Records)) %>%
-  rename(Sector = `Organization type`, `Attack type` = Method)
-wiki_attacks <- wiki_attacks %>% mutate(Year = split_date())
+  rename(Sector = `Organization type`, `Attack type` = Method) %>%
+  mutate(Year = as.numeric(split_date()), Records = as.numeric(str_remove_all(wiki$Records, ",")))
+
 
 data_breaches_2018_update_attacks <- data_breaches_2018_update %>% 
   select(c(YEAR, Entity, ORGANISATION, `METHOD OF LEAK`, `records lost`)) %>%
@@ -144,14 +137,21 @@ attacks <- union_all(union_all(wiki_attacks, data_breaches_2018_update_attacks),
 
 ```{r warning=FALSE, message=FALSE}
 #grafico andamento del numero di attacchi in funzione del tempo
-attack_year <- attacks %>% group_by(Year) %>%
-  summarise(attack = n())
+(attack_year <- attacks %>% group_by(Year) %>%
+  summarise(attack = n()))
 
 ggplot(attack_year, aes(x = Year, y = attack, )) + 
   geom_line()
   
 ```
-<!--da fare analisi-->
+
+Dal grafico quà ssopra si vede che fino al 2017 il numero di attacchi è aumentato fino a un numero di attacchi pari a 267 attacchi in un anno per poi scendere negli anni successivi.
+Dal 2019 fino ad oggi c'è stata una riduzione non indifferente che probabilmete è stata portata da un aumenta della sensibilizzazione da parte delle aziende nell'ambito sicurezza e cybersecurity anche per il fatto che con il COVID-19 che ha portato molte aziende ad approcciarsi con lo smart working e quindi necessitano di un maggior livello di sicurezza.
+
+```{r}
+#TODO: dimostrare l'osservazione fatta sopra
+```
+
 
 ## Qual'è il settore che è stato maggiormente colpito?
 
@@ -173,7 +173,11 @@ attack_sector %>% ggplot() +
   coord_polar("y", start = 0) +
   theme_void()
 ```
-<!--da fare analisi, trovare spiegazione perchè proprio quel settore-->
+Da come viene mostrato dal grafico soprastante il settore che è stato maggiormente colpito è quello delle **Human health activities** con un totale di 318 attacchi il quale risulta circa il doppia del settore subito dopo che è quello del **web** con un totale di 137 attacchi dal 2004 al 2022.
+
+Qui di seguito proviamo a capire perchè il settore delle **Human health activities** è quello che è stato maggiormente preso di mira in questi 18 anni.
+Per fare questo vado a prendere in considerazione i sistemi di sicurezza di tutte le aziende che lavorano nel settore sopracitato e guardo cosa hanno in comune.
+
 ```{r warning=FALSE, message=FALSE}
 health <- queensland %>% filter(Sector == "Human health activities") %>%
     select(c(`Critical Industry`, 
@@ -205,14 +209,17 @@ for (feature in names(health)) {
 
 do.call("grid.arrange", c(plots, ncol = 4))
 ```
-<!--da scrivere analisi-->
+
+La prima cosa che scatta all'occhio che senza alcun dubbio il settore sanitario costituisce un settore critico e che, ovviamente, non ha un ruolo inerente alla cybersecurity.
+In generale a livello di sistemi di sicurezza il settore è messo abbastanza bene ma ci sono un paio di cose che sorgono all'occhio: uno dei modi principali per effettuare attacchi è sfruttare l'accesso remoto e in questo caso tali accessi sono protetti appropriamente nel maggior numero dei casi, ma la cosa più preoccupante che circa 200 aziende non usano la cifratura, in nessuna di queste ha una politica di educazione e sensibilizzazione del personale e non usano alcun cybersecurity framework il quale fornisce delle linee guida e le best practice per ottenere un sistema sicura.
+
+Da questa analisi si potrebbe dedurre che il fatto dell'assenza di cifratura è causa di un eventuale pubblicazione dei dati esfiltrati illecitamente, ma non spiega il perchè dell'attacco, l'unica motivazione di questo numero spropositato di attacchi potrebbe essere causato dalla mancanza di una politica di educazione e sensibilizzazione dello staff alle possibile problematica di sicurezza informatica che potrebbero incontrare durante il loro lavoro (mail di phishing, allegati alle mail, ...) e di come proteggersi da esse, con lo scopo di ridurre la possibilità di venire attaccati a causa di un fattore umano.
+
+```{r}
+#TODO: verificare che il problema è la mancanza di sensibilizzazione e formazione del personale
+```
 
 ## Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
-
-```{r warning=FALSE, message=FALSE}
-attacks %>% group_by(Year) %>%
-  summarise(median = median(Records, na.rm = TRUE))
-```
 
 ```{r warning=FALSE, message=FALSE}
 attacks  %>% filter(Records < 10000000) %>%
@@ -221,7 +228,10 @@ attacks  %>% filter(Records < 10000000) %>%
   geom_boxplot(na.rm = TRUE) +
   theme_classic()
 ```
-<!--realizzare ananlisi -->
+
+Il volume di dati rubati sembra che tende ad aumentare con l'andare avanti con gli anni raggiungendo il suo picco nel 2022, anche se sono avvenuti un numero inferiore di attacchi la qunatità di dati generata dalle aziende è aumentata e di conseguenza anche le quantiità di dati esfiltrati dall'attaccante è cresciuto anche grazie all'avanzamento tecnologico.
+
+Ora proviamo a vedere quale feature tra *dimensione dell'azienda*, *livello di digital intensity* e *sensibilità dei dati* teniti dall'azienda.
 
 ```{r warning=FALSE, message=FALSE}
 #Organization size - Number of users affected
@@ -231,8 +241,6 @@ queensland  %>% filter(`Number of users affected` < 1000000 & !is.na(`Organisati
   geom_boxplot(na.rm = TRUE) +
   theme_classic()
 ```
-<!--inserire analisi-->
-
 ```{r warning=FALSE, message=FALSE}
 # Level of digital intensity - Number of users affected
 queensland  %>% filter(`Number of users affected` < 1000000) %>%
@@ -240,10 +248,8 @@ queensland  %>% filter(`Number of users affected` < 1000000) %>%
   geom_boxplot(na.rm = TRUE) +
   theme_classic()
 ```
-<!--inserire analisi-->
-
 ```{r warning=FALSE, message=FALSE}
-# DATA SENSITIVITy - Number of users affected
+# DATA SENSITIVITY - Number of users affected
 data_breaches_2018_update  %>% mutate(`DATA SENSITIVITY` = as.character(`DATA SENSITIVITY`)) %>%
   filter(`records lost` < 100000000 & `DATA SENSITIVITY` != "3") %>%
   ggplot(aes(x = `DATA SENSITIVITY`, y = `records lost`), na.rm = TRUE) +
@@ -251,7 +257,8 @@ data_breaches_2018_update  %>% mutate(`DATA SENSITIVITY` = as.character(`DATA SE
   theme_classic()
 ```
 <!--inserire analisi-->
-<!--forse va tolto-->
+
+<!--forse va tolto
 
 Dall'analisi fatta sopra si vede che l'unica ad influenzare la quantità di dati esfiltrati da un data breach è la dimensione dell'azienda.
 
@@ -279,7 +286,7 @@ queensland_factorized  %>% mutate(Year = as.character(Year)) %>%
   geom_boxplot(na.rm = TRUE)
 ```
 
-
+-->
 ## Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
 
 ```{r warning=FALSE, message=FALSE}
