@@ -308,10 +308,18 @@ Andiamo a commentare più nello specifico alcune caratteristiche di sicurezza co
 ```{r warning=FALSE, message=FALSE}
 cramerV_table["Absence of encryption", ]
 ```
-Se si tiene in considerazione l' assenza o meno della cifratura sembra non essere determinante per evitare un eventuale data leak di qualunque tipo o evitare di pagare o ricevere multe rilasciate direttamete dal governo oppure enti competenti o qualunque altra azione imposta.
+Se si tiene in considerazione l'assenza o meno della cifratura sembra non essere determinante per evitare un eventuale data leak di qualunque tipo o evitare di pagare o ricevere multe rilasciate direttamete dal governo oppure enti competenti o qualunque altra azione imposta.
 
 ```{r warning=FALSE, message=FALSE}
 cramerV_table["Bribe/ransom paid", ]
 ```
 
 Come ci si aspettava il pagamento del riscatto non assicura la non diffusione e la conseguente cancellazzione dei dati prelevati in modo illecito ma tale risultato dopo tutto era scontato per il fatto che l'accordo viene fatto con dei criminale di cui di base non ci si può fidare e non si ha nessun tipo di garanzia che mi assicura la cancellazione dei dati.
+
+# CONCLUSIONI
+
+Negli ultimi 18 anni in linea generale il problema degli attacchi informatici con il conseguente data breach e l'eventuale pubblicazione dei dati nel dark web ha avuto una crescita esponenziale col passare degli anni aiutato anche dall'avanzamento tecnologico, per poi apparentemete "fermarsi" o rallentare nel 2019. 
+Tale riduzione è stata causata principalmete del COVID-19 data dal fatto che, come visto il vettore d'attacco principalmete usato sembra essere stato il furto, la violazione e la successiva infezione di esso, almeno per quanto riguarda il settore sanitario che è quello che è stato maggiormente attaccatto, la gente è stata costretta a restare chiusa in casa a causa del lockdown e a lavorare da casa i gruppi hacker hanno dovuto trovare nuovi vettori d'attacco e superare i sistemi di sicurezza introdotti per lo smart-working.
+
+In linea generale si può concludere che la sicurezza dei sistemi informatici deve partire dal minimizzare irischi portati dal **fattore umano** con una buona campagna di sensibilizzazione ed educazione del personale su tali tematiche.
+
