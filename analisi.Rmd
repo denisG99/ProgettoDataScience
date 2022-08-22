@@ -25,7 +25,6 @@ library(dplyr)
 library(modelr)
 library(stringr)
 library(rcompanion)
-#library(nnet)
 library(gridExtra)
 ```
 
@@ -148,11 +147,6 @@ ggplot(attack_year, aes(x = Year, y = attack, )) +
 Dal grafico quà ssopra si vede che fino al 2017 il numero di attacchi è aumentato fino a un numero di attacchi pari a 267 attacchi in un anno per poi scendere negli anni successivi.
 Dal 2019 fino ad oggi c'è stata una riduzione non indifferente che probabilmete è stata portata da un aumenta della sensibilizzazione da parte delle aziende nell'ambito sicurezza e cybersecurity anche per il fatto che con il COVID-19 che ha portato molte aziende ad approcciarsi con lo smart working e quindi necessitano di un maggior livello di sicurezza.
 
-```{r}
-#TODO: dimostrare l'osservazione fatta sopra
-```
-
-
 ## Qual'è il settore che è stato maggiormente colpito?
 
 ```{r warning=FALSE, message=FALSE}
@@ -184,24 +178,18 @@ health <- queensland %>% filter(Sector == "Human health activities") %>%
              `Organisation size`,
              `Level of digital intensity`,
              `Cyber security role` : `Additional disclosure of information`,
-             -Detector))
+             -Detector, `Attack type`, `Attack vector`))
 ```
 
 ```{r warning=FALSE, message=FALSE}
 #TODO: vedere se è sostituibile con lapply
-##TODO: vedere colori
 plots <- list()
 
-for (feature in names(health)) {
-  plots[[feature]] <- health %>% filter(!is.na(!!as.symbol(feature))) %>%
+for (feature in names(health %>% select(-`Attack type`, -`Attack vector`))) {
+  plots[[feature]] <- health %>%
+    filter(!is.na(!!as.symbol(feature))) %>%
     group_by(!!as.symbol(feature)) %>% 
-    ggplot(aes(x = !!as.symbol(feature), fill = feature)) +
-    scale_fill_manual(values = c("Yes" = "green",
-                                 "No" = "red",
-                                 "Small" = "red",
-                                 "Low-Medium" = "orange",
-                                 "Medium" = "cyan",
-                                 "High" = "green")) +
+    ggplot(aes(x = !!as.symbol(feature))) +
     geom_bar() +
     theme_classic() +
     theme(text = element_text(size = 10), legend.position = "none")
@@ -215,9 +203,20 @@ In generale a livello di sistemi di sicurezza il settore è messo abbastanza ben
 
 Da questa analisi si potrebbe dedurre che il fatto dell'assenza di cifratura è causa di un eventuale pubblicazione dei dati esfiltrati illecitamente, ma non spiega il perchè dell'attacco, l'unica motivazione di questo numero spropositato di attacchi potrebbe essere causato dalla mancanza di una politica di educazione e sensibilizzazione dello staff alle possibile problematica di sicurezza informatica che potrebbero incontrare durante il loro lavoro (mail di phishing, allegati alle mail, ...) e di come proteggersi da esse, con lo scopo di ridurre la possibilità di venire attaccati a causa di un fattore umano.
 
+
 ```{r}
-#TODO: verificare che il problema è la mancanza di sensibilizzazione e formazione del personale
+#Tipo di attacco
+health %>% filter(!is.na(`Attack type`)) %>%
+  ggplot(aes(y = `Attack type`)) + 
+  geom_bar()
+
+#vettore d'attacco
+health %>% filter(!is.na(`Attack vector`)) %>%
+  ggplot(aes(y = `Attack vector`)) + 
+  geom_bar()
 ```
+
+I grafici qua sopra dimostrana che il problema sta nel fattore umano e qundi nella mancanza di una corretta formazione e sensibilizzazione del personale su questi temi. Infatti nella maggior parte dei casi l'attacco viene portato da **device fisici** (periferiche infette, computer dei dipendenti infettati, ...) soprattutto a causa di **dispositivi rubati** magari lasciati incustoditi, infatti in secondo luogo anche l' **installazione di malware** è il tipo di attacco maggiormente utilizzato per attaccare il settore e infatti, molto spesso, l'installazione di malware e il furto di dispositivi fisici, o più in generale gli attacchi veicolati da essi, questi vengono usati come mezzo per iniziare l'infezione.
 
 ## Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
 
@@ -256,38 +255,23 @@ data_breaches_2018_update  %>% mutate(`DATA SENSITIVITY` = as.character(`DATA SE
   geom_boxplot(na.rm = TRUE) +
   theme_classic()
 ```
-<!--inserire analisi-->
 
-<!--forse va tolto
+Dai boxplot sopra descritti si nota che l'unica feature che va ad influire sulla quantità di records rubati è la dimensione dell'organizzazione: più grande è l'organizzazione maggiore sarà la quntità di record rubati.
 
-Dall'analisi fatta sopra si vede che l'unica ad influenzare la quantità di dati esfiltrati da un data breach è la dimensione dell'azienda.
+È stato scelto di prendere in considerazione solo le osservazioni con meno di 1000000, nei primi due e 100000000 nel terzo per riuscire a fornire una visualizzazione comprensibile e analizzabile.
 
-Per verificare se c'è una relazione di qualche tipo tra anno e quantità di record estratti si deve andare a slegare la quantità di record estratti dalla dimensione dell'azienda.
+I grafii non sono precisi al 100% solo per il fatto che è un analisi che è stata fatta su due dataset distinti e non sull'unione dei tre dataset solo per il fatto che le features prese in esame appartengono a dataset distinti e non hanno le features in comune.
 
-```{r warning=FALSE, message=FALSE}
-#TODO: da sistemare
-queensland_factorized <- queensland %>%
-   select(Year, `Organisation size`, `Number of users affected`) %>%
-   mutate_if(is.character, as.factor) %>% 
-   mutate_if(is.factor, unclass) %>%
-   mutate_if(is.integer, as.character) %>%
-   mutate_if(is.character, as.numeric)
-
-model <- lm(`Organisation size` ~ `Number of users affected`, data = queensland_factorized)
-#model <- multinom(`Organisation size` ~ `Number of users affected`, data = queensland_factorized)
-queensland_factorized <- add_predictions(queensland_factorized, model)
-queensland_factorized <- add_residuals(queensland_factorized, model)
-```
-
-```{r warning=FALSE, message=FALSE}
-queensland_factorized  %>% mutate(Year = as.character(Year)) %>% 
-  ggplot(aes(x = Year, y = resid), na.rm = TRUE) +
-  geom_ref_line(h = 0)
-  geom_boxplot(na.rm = TRUE)
-```
-
--->
 ## Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
+
+Per scoprire se c'è un legame tra sistemi di sicurezza implemetati nel sistema e le conseguenze dell'attacco devo verificare se esiste una correlazione. 
+Per fare ciò trattandosi di varaibili qualitative gli indici di correlazione visti per le variabili quantitative (Pearson, Kendal e Spearman) non sono applicabili necessito un nuovo indice di correlazione: **Cramer's V**.
+
+In breve la **V di Crame** è un indice per valutare la correlazione tra variabili categoriali (o qualitative) nominale.
+
+$$ V = \sqrt {\frac{\chi ^ 2}{min(k-1, r-1)\cdot n}} $$ dove &#967;<sup>2</sup> indica il **test chi quadro**, *n* indica le **osservazioni totali**, *k* indica il **numero di colonne** e *r* indica il **numero di righe**.
+
+Il risultato è compreso tra **[0,1]**: con *0* si intende che tra le variabile non c'è alcuna correlazione e *1* indica che c'è un'alto livello di associazione che può essere sia positiva e sia negativa.
 
 ```{r warning=FALSE, message=FALSE}
 sec_conseguences <- queensland %>% select(c(`Cyber security role` : `Absence of encryption`, 
@@ -302,26 +286,7 @@ consequences <- sec_conseguences %>% select(c(`Individual(s) name(s) leaked/expo
                                               `Undertook investigation` : `Settlement paid`))
 ```
 
-```{r warning=FALSE, message=FALSE}
-sec_conseguences_occurs <- matrix(0, nrow = 10, ncol = 13)
-rownames(sec_conseguences_occurs) <- c(names(sec_conseguences)[1 : 10])
-colnames(sec_conseguences_occurs) <- c(names(sec_conseguences)[11 : 23])
-```
-
-```{r warning=FALSE, message=FALSE}
-# vedere se si riesce usando funzione apply
-for (row in names(sec_conseguences)[1 : 10]){
-  for (col in names(sec_conseguences)[11 : 23]){
-    sec_conseguences_occurs[row, col] <- dim(sec_conseguences %>% select(c(row, col)) %>% 
-          filter(!!as.symbol(row) == 'Yes' & !!as.symbol(col) =='Yes'))[1]
-  }
-}
-```
-<!--inserire spiegazione !! prima della comversione di tipo-->
-
-```{r warning=FALSE, message=FALSE}
-cramerV(sec_conseguences_occurs)
-```
+Per calcolare la V di Cramer necessito di crare le **tabelle di contingenza** tra turre le possibili coppie tramite la funzione 'table()' e su tale tabella vado a calcolare la V di Cramer.
 
 ```{r warning=FALSE, message=FALSE}
 cramerV_table <-  matrix(0, nrow = 10, ncol = 13)
@@ -332,6 +297,21 @@ for (row in names(sec_conseguences)[1 : 10])
   for (col in names(sec_conseguences)[11 : 23])
     cramerV_table[row, col] <- cramerV(table(unlist(sec_conseguences[row]), unlist(sec_conseguences[col])))
 
+cramerV_table <- as.data.frame(cramerV_table)
+
 cramerV_table
 ```
-<!--inserire analisi-->
+Dall'analisi della tabella soprastante tra sistemi di sicurezza implementati e le consegueze degli attacchi non c'è alcuna correlazione forte tranno per qualche eccezione.
+
+Andiamo a commentare più nello specifico alcune caratteristiche di sicurezza come vanno a influire sulle conseguenze dell'attacco: **assenza di cifrature** e **pagamento del riscatto**.
+
+```{r warning=FALSE, message=FALSE}
+cramerV_table["Absence of encryption", ]
+```
+Se si tiene in considerazione l' assenza o meno della cifratura sembra non essere determinante per evitare un eventuale data leak di qualunque tipo o evitare di pagare o ricevere multe rilasciate direttamete dal governo oppure enti competenti o qualunque altra azione imposta.
+
+```{r warning=FALSE, message=FALSE}
+cramerV_table["Bribe/ransom paid", ]
+```
+
+Come ci si aspettava il pagamento del riscatto non assicura la non diffusione e la conseguente cancellazzione dei dati prelevati in modo illecito ma tale risultato dopo tutto era scontato per il fatto che l'accordo viene fatto con dei criminale di cui di base non ci si può fidare e non si ha nessun tipo di garanzia che mi assicura la cancellazione dei dati..
