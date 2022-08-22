@@ -314,4 +314,4 @@ Se si tiene in considerazione l' assenza o meno della cifratura sembra non esser
 cramerV_table["Bribe/ransom paid", ]
 ```
 
-Come ci si aspettava il pagamento del riscatto non assicura la non diffusione e la conseguente cancellazzione dei dati prelevati in modo illecito ma tale risultato dopo tutto era scontato per il fatto che l'accordo viene fatto con dei criminale di cui di base non ci si può fidare e non si ha nessun tipo di garanzia che mi assicura la cancellazione dei dati..
+Come ci si aspettava il pagamento del riscatto non assicura la non diffusione e la conseguente cancellazzione dei dati prelevati in modo illecito ma tale risultato dopo tutto era scontato per il fatto che l'accordo viene fatto con dei criminale di cui di base non ci si può fidare e non si ha nessun tipo di garanzia che mi assicura la cancellazione dei dati.
