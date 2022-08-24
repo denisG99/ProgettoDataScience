@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Il datasets presi in considerazione sono 3 e trattano principalmete i data breach avvenuti tra il 2004 e il 2020: 
+Il datasets presi in considerazione sono 3 e trattano principalmete i data breach avvenuti tra il 2004 e il 2022:
 
  * [link](https://espace.library.uq.edu.au/view/UQ:dfe5027) il quale contiene informazioni su data breach e ransomware tra il 2004 e l'inizio del 2020 raccolti dall'università del Queensland;
  * [link](https://en.wikipedia.org/wiki/List_of_data_breaches), che non è che il risultato di uno scrapping (per lo scrapping della pagina vedi script nel file *wiki_scrap.R*);
@@ -167,6 +167,7 @@ attack_sector %>% ggplot() +
   coord_polar("y", start = 0) +
   theme_void()
 ```
+
 Da come viene mostrato dal grafico soprastante il settore che è stato maggiormente colpito è quello delle **Human health activities** con un totale di 318 attacchi il quale risulta circa il doppia del settore subito dopo che è quello del **web** con un totale di 137 attacchi dal 2004 al 2022.
 
 Qui di seguito proviamo a capire perchè il settore delle **Human health activities** è quello che è stato maggiormente preso di mira in questi 18 anni.
