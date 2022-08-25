@@ -13,9 +13,9 @@ Il datasets presi in considerazione sono 3 e trattano principalmete i data breac
 
  * [link](https://espace.library.uq.edu.au/view/UQ:dfe5027) il quale contiene informazioni su data breach e ransomware tra il 2004 e l'inizio del 2020 raccolti dall'università del Queensland;
  * [link](https://en.wikipedia.org/wiki/List_of_data_breaches), che non è che il risultato di uno scrapping (per lo scrapping della pagina vedi script nel file *wiki_scrap.R*);
- * [link](https://docs.google.com/spreadsheets/d/1Je-YUdnhjQJO_13r8iTeRxpU2pBKuV6RVRHoYCgiMfg/edit#gid=322165570).
+ * [link](https://docs.google.com/spreadsheets/d/1Je-YUdnhjQJO_13r8iTeRxpU2pBKuV6RVRHoYCgiMfg/edit#gid=322165570) spreadsheet online.
 
-Il secondo e il terzo dataset sono quelli più semplici e contengono informazioni generali di un attacco, ad esempio anno, nome dell'azienda, quantità di record rubati, ecc, invece il primo può essere suddiviso in 4 sezioni: la prima riguarda una sorta di profilo dell'azienda a livello generale (nome dell'azieda, dimensione dell'azienda, il settore, ...), la secondo contiene le carattereristiche dell'attacco (data, record rubati, tipo e vettore di attacco), la terza contiene i sistemi di sicurezza implementati nel sistema informatico e, infine, la quarta e ultima sezione contiene le conseguenze dell'attacco (se è avvenuto o meno un leak di qualche tipo di informazione esfiltrata dall'azienda, se ci sono stati provvedimenti di qualunque tipo, ...).
+Il secondo e il terzo dataset sono quelli più semplici e contengono informazioni generali di un attacco, ad esempio anno, nome dell'azienda, quantità di record rubati, ecc; invece il primo può essere suddiviso in 4 sezioni: la prima riguarda una sorta di profilo dell'azienda a livello generale (nome dell'azieda, dimensione dell'azienda, il settore, ...), la secondo contiene le carattereristiche dell'attacco (data, record rubati, tipo e vettore di attacco), la terza contiene i sistemi di sicurezza implementati nel sistema informatico e, infine, la quarta e ultima contiene le conseguenze dell'attacco (se è avvenuto o meno un leak di qualche tipo di informazione esfiltrata dall'azienda, se ci sono stati provvedimenti di qualunque tipo, ...).
 
 ```{r warning=FALSE, message=FALSE}
 library(readr)
@@ -26,6 +26,8 @@ library(modelr)
 library(stringr)
 library(rcompanion)
 library(gridExtra)
+library(DT)
+library(corrplot)
 ```
 
 # IMPORT DEI DATI
@@ -68,13 +70,13 @@ queensland <- queensland %>% select(c(-...44, -`Effect on share price`, -`Overal
 
 * *Overall nature of attack* è stato escluso perchè non è chiaro cosa indicano i valori per quel campo;
 * *...44* è un errore di esportazione a csv dal foglio excell;
-* *Effect on share price* non ci sono  molti valori non disponibili.
+* *Effect on share price* non ci sono  molti valori non disponibili come mostrato in precedenza.
 
 ```{r message=FALSE, warning=FALSE}
 wiki <- wiki %>% select(-Sources)
 ```
 
-* *Sources* è stato escluso perchè contiene collegmaneti ipertestuali
+* *Sources* è stato escluso perchè contiene collegmaneti ipertestuali.
 
 ```{r message=FALSE, warning=FALSE}
 data_breaches_2018_update <- data_breaches_2018_update %>% 
@@ -106,7 +108,7 @@ split_date <- function(){
 }
 ```
 
-La funzione descritta in precedenza serve nel caso in cui l'anno di avvenimento dell'attacco non è definito da un singolo anno ma da due anni separati del carattere "-" (come mostrato di seguito), per il fatto che probabilemete tale attacco è avvenuto a cavallo degli anni espressi, e prendo in considerazione solo l'anno in cui è iniziato l'atacco.
+La funzione descritta in precedenza serve nel caso in cui l'anno di avvenimento dell'attacco non è definito da un singolo anno ma da due anni separati del carattere "-" (come mostrato di seguito), per il fatto che, probabilemete, tale attacco è avvenuto a cavallo degli anni espressi, e prendo in considerazione solo l'anno in cui è iniziato l'attacco.
 
 ```{r}
 wiki %>% select(Year) %>%
@@ -114,7 +116,8 @@ wiki %>% select(Year) %>%
 ```
 
 Dai 3 dataset vado ad estrarre le features che riguardano il nome dell'azienda che è stata vittima dell'attacco o data-breach, l'anno, il paese, il settore di competenza e le tecniche di attacco.
-Lo scopo di estrarre tali features è andare a studiare la crescita o la diminuzione del numero di attacchi.
+
+Lo scopo di estrarre tali features è quello di andare a studiare la crescita o la diminuzione del numero di attacchi condensando il tutto in una singola tabella.
 
 
 ```{r warning=FALSE, message=FALSE}
@@ -144,8 +147,8 @@ ggplot(attack_year, aes(x = Year, y = attack, )) +
   
 ```
 
-Dal grafico quà ssopra si vede che fino al 2017 il numero di attacchi è aumentato fino a un numero di attacchi pari a 267 attacchi in un anno per poi scendere negli anni successivi.
-Dal 2019 fino ad oggi c'è stata una riduzione non indifferente che probabilmete è stata portata da un aumenta della sensibilizzazione da parte delle aziende nell'ambito sicurezza e cybersecurity anche per il fatto che con il COVID-19 che ha portato molte aziende ad approcciarsi con lo smart working e quindi necessitano di un maggior livello di sicurezza.
+Dal grafico quà sopra si vede che fino al 2017 il numero di attacchi è aumentato fino a un numero di attacchi pari a 267 in un anno, per poi scendere negli anni successivi. 
+Dal 2019 fino ad oggi c'è stata una riduzione non indifferente che probabilmete è stata portata da un aumento della sensibilizzazione da parte delle aziende nell'ambito della sicurezza e cybersecurity data anche per il fatto che con il COVID-19 ha portato molte aziende ad approcciarsi con lo smart working, necessitando di un maggior livello di sicurezza.
 
 ## Qual'è il settore che è stato maggiormente colpito?
 
@@ -168,9 +171,12 @@ attack_sector %>% ggplot() +
   theme_void()
 ```
 
-Da come viene mostrato dal grafico soprastante il settore che è stato maggiormente colpito è quello delle **Human health activities** con un totale di 318 attacchi il quale risulta circa il doppia del settore subito dopo che è quello del **web** con un totale di 137 attacchi dal 2004 al 2022.
+Da come viene mostrato dal grafico soprastante il settore che è stato maggiormente colpito è quello delle **Human health activities** con un totale di 318 attacchi il quale risulta circa il doppia del settore subito sotto, che è quello del **web** con un totale di 137 attacchi dal 2004 al 2022.
+
+### Perchè il settore *Human health activities* è quello maggiormente attaccato?
 
 Qui di seguito proviamo a capire perchè il settore delle **Human health activities** è quello che è stato maggiormente preso di mira in questi 18 anni.
+
 Per fare questo vado a prendere in considerazione i sistemi di sicurezza di tutte le aziende che lavorano nel settore sopracitato e guardo cosa hanno in comune.
 
 ```{r warning=FALSE, message=FALSE}
@@ -199,11 +205,14 @@ for (feature in names(health %>% select(-`Attack type`, -`Attack vector`))) {
 do.call("grid.arrange", c(plots, ncol = 4))
 ```
 
-La prima cosa che scatta all'occhio che senza alcun dubbio il settore sanitario costituisce un settore critico e che, ovviamente, non ha un ruolo inerente alla cybersecurity.
-In generale a livello di sistemi di sicurezza il settore è messo abbastanza bene ma ci sono un paio di cose che sorgono all'occhio: uno dei modi principali per effettuare attacchi è sfruttare l'accesso remoto e in questo caso tali accessi sono protetti appropriamente nel maggior numero dei casi, ma la cosa più preoccupante che circa 200 aziende non usano la cifratura, in nessuna di queste ha una politica di educazione e sensibilizzazione del personale e non usano alcun cybersecurity framework il quale fornisce delle linee guida e le best practice per ottenere un sistema sicura.
+La prima cosa che scatta all'occhio che, senza alcun dubbio, il settore sanitario costituisce un settore critico e che, ovviamente, non ha un ruolo inerente alla cybersecurity.
+In generale a livello di sistemi di sicurezza il settore è messo abbastanza bene ma ci sono un paio di cose che sorgono all'occhio: uno dei modi principali per effettuare attacchi è sfruttare l'accesso remoto e in questo caso tali accessi sono protetti, nel maggior numero dei casi, appropriamente, ma la cosa più preoccupante che circa 200 aziende non usano la cifratura e in nessuna di queste ha una politica di educazione e sensibilizzazione del personale e non usano alcun cybersecurity framework il quale fornisce delle linee guida e le best practice per ottenere un sistema sicura.
 
-Da questa analisi si potrebbe dedurre che il fatto dell'assenza di cifratura è causa di un eventuale pubblicazione dei dati esfiltrati illecitamente, ma non spiega il perchè dell'attacco, l'unica motivazione di questo numero spropositato di attacchi potrebbe essere causato dalla mancanza di una politica di educazione e sensibilizzazione dello staff alle possibile problematica di sicurezza informatica che potrebbero incontrare durante il loro lavoro (mail di phishing, allegati alle mail, ...) e di come proteggersi da esse, con lo scopo di ridurre la possibilità di venire attaccati a causa di un fattore umano.
+Da questa analisi si potrebbe dedurre che il fatto dell'assenza di cifratura potrebbe essere una delle causa di un eventuale pubblicazione dei dati esfiltrati illecitamente, ma non spiega il perchè dell'attacco. 
 
+L'unica motivazione di questo numero spropositato di attacchi potrebbe essere causato dalla mancanza di una politica di educazione e sensibilizzazione dello staff alle possibile problematica di sicurezza informatica che potrebbero incontrare durante lo svolgimento del lavoro (mail di phishing, allegati alle mail, ...) e di come proteggersi da esse, con lo scopo di ridurre la possibilità attacco che è stato causato da un fattore umano.
+
+### Il fattore umano è davvero la causa principale di attacco nel settore?
 
 ```{r}
 #Tipo di attacco
@@ -217,7 +226,9 @@ health %>% filter(!is.na(`Attack vector`)) %>%
   geom_bar()
 ```
 
-I grafici qua sopra dimostrana che il problema sta nel fattore umano e qundi nella mancanza di una corretta formazione e sensibilizzazione del personale su questi temi. Infatti nella maggior parte dei casi l'attacco viene portato da **device fisici** (periferiche infette, computer dei dipendenti infettati, ...) soprattutto a causa di **dispositivi rubati** magari lasciati incustoditi, infatti in secondo luogo anche l' **installazione di malware** è il tipo di attacco maggiormente utilizzato per attaccare il settore e infatti, molto spesso, l'installazione di malware e il furto di dispositivi fisici, o più in generale gli attacchi veicolati da essi, questi vengono usati come mezzo per iniziare l'infezione.
+I grafici qua sopra dimostrano che il problema sta nel fattore umano, qundi nella mancanza di una corretta formazione e sensibilizzazione del personale su questi temi. 
+
+Infatti nella maggior parte dei casi l'attacco viene veicolato dai **device fisici** (periferiche infette, computer dei dipendenti infettati, ...) a causa del loro furto, infatti, in secondo luogo, anche l' **installazione di malware** è il tipo di attacco maggiormente utilizzato per attaccare il settore, ciò è dato dal fatto che molto spesso, l'installazione di malware e il furto di dispositivi fisici, o più in generale gli attacchi veicolati da essi, questi ultimi vengono usati come mezzo per iniziare l'infezione del sistema.
 
 ## Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
 
@@ -229,9 +240,9 @@ attacks  %>% filter(Records < 10000000) %>%
   theme_classic()
 ```
 
-Il volume di dati rubati sembra che tende ad aumentare con l'andare avanti con gli anni raggiungendo il suo picco nel 2022, anche se sono avvenuti un numero inferiore di attacchi la qunatità di dati generata dalle aziende è aumentata e di conseguenza anche le quantiità di dati esfiltrati dall'attaccante è cresciuto anche grazie all'avanzamento tecnologico.
+Il volume di dati rubati sembra che tende ad aumentare con l'andare avanti degli anni, raggiungendo il suo picco nel 2022, anche se sono avvenuti un numero inferiore di attacchi. Ciò è dato dal fatto che la qunatità di dati generata dalle aziende è aumentata vertiginosamente e di conseguenza anche le quantità di dati esfiltrati dall'attaccante è cresciuta, anche grazie all'avanzamento tecnologico.
 
-Ora proviamo a vedere quale feature tra *dimensione dell'azienda*, *livello di digital intensity* e *sensibilità dei dati* teniti dall'azienda.
+Ora proviamo a vedere quale feature tra *dimensione dell'azienda*, *livello di digital intensity* e *sensibilità dei dati* vanno a influenzare il volume di dati rubati.
 
 ```{r warning=FALSE, message=FALSE}
 #Organization size - Number of users affected
@@ -257,22 +268,22 @@ data_breaches_2018_update  %>% mutate(`DATA SENSITIVITY` = as.character(`DATA SE
   theme_classic()
 ```
 
-Dai boxplot sopra descritti si nota che l'unica feature che va ad influire sulla quantità di records rubati è la dimensione dell'organizzazione: più grande è l'organizzazione maggiore sarà la quntità di record rubati.
+Dai boxplot sopra descritti si nota che l'unica feature che va ad influire sulla quantità di records rubati è la dimensione dell'organizzazione: più grande è l'organizzazione, maggiore sarà la quntità di record rubati.
 
 È stato scelto di prendere in considerazione solo le osservazioni con meno di 1000000, nei primi due e 100000000 nel terzo per riuscire a fornire una visualizzazione comprensibile e analizzabile.
 
-I grafii non sono precisi al 100% solo per il fatto che è un analisi che è stata fatta su due dataset distinti e non sull'unione dei tre dataset solo per il fatto che le features prese in esame appartengono a dataset distinti e non hanno le features in comune.
+I grafici non sono precisi al 100% per il fatto che è un analisi che è stata fatta su due dataset distinti e non sull'unione dei tre dataset perchè le features prese in considerazione appartengono a dataset distinti e non hanno tali features in comune.
 
 ## Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
 
-Per scoprire se c'è un legame tra sistemi di sicurezza implemetati nel sistema e le conseguenze dell'attacco devo verificare se esiste una correlazione. 
-Per fare ciò trattandosi di varaibili qualitative gli indici di correlazione visti per le variabili quantitative (Pearson, Kendal e Spearman) non sono applicabili necessito un nuovo indice di correlazione: **Cramer's V**.
+Per scoprire se c'è un legame tra sistemi di sicurezza implemetati e le conseguenze dell'attacco devo verificare se esiste una correlazione. 
+Per fare ciò trattandosi di varaibili qualitative, gli indici di correlazione visti per le variabili quantitative (Pearson, Kendal e Spearman) non sono applicabili quidi necessito un nuovo indice di correlazione: la **V di Cramer**.
 
 In breve la **V di Crame** è un indice per valutare la correlazione tra variabili categoriali (o qualitative) nominale.
 
 $$ V = \sqrt {\frac{\chi ^ 2}{min(k-1, r-1)\cdot n}} $$ dove &#967;<sup>2</sup> indica il **test chi quadro**, *n* indica le **osservazioni totali**, *k* indica il **numero di colonne** e *r* indica il **numero di righe**.
 
-Il risultato è compreso tra **[0,1]**: con *0* si intende che tra le variabile non c'è alcuna correlazione e *1* indica che c'è un'alto livello di associazione che può essere sia positiva e sia negativa.
+Il risultato è compreso tra **[0,1]**: con *0* si intende che tra le variabile non c'è alcuna correlazione e *1* indica che c'è un'alto livello di associazione, che può essere o positiva o negativa.
 
 ```{r warning=FALSE, message=FALSE}
 sec_conseguences <- queensland %>% select(c(`Cyber security role` : `Absence of encryption`, 
@@ -300,27 +311,35 @@ for (row in names(sec_conseguences)[1 : 10])
 
 cramerV_table <- as.data.frame(cramerV_table)
 
-cramerV_table
+datatable(cramerV_table)
 ```
-Dall'analisi della tabella soprastante tra sistemi di sicurezza implementati e le consegueze degli attacchi non c'è alcuna correlazione forte tranno per qualche eccezione.
+
+```{r warning=FALSE, message=FALSE}
+#TODO: sistemare
+corrplot(as.matrix(cramerV_table), method = "square")
+```
+
+
+Dall'analisi della tabella soprastante tra sistemi di sicurezza implementati e le consegueze degli attacchi non c'è alcuna correlazione forte tranne per qualche eccezione.
 
 Andiamo a commentare più nello specifico alcune caratteristiche di sicurezza come vanno a influire sulle conseguenze dell'attacco: **assenza di cifrature** e **pagamento del riscatto**.
 
 ```{r warning=FALSE, message=FALSE}
-cramerV_table["Absence of encryption", ]
+datatable(cramerV_table["Absence of encryption", ])
 ```
+
 Se si tiene in considerazione l'assenza o meno della cifratura sembra non essere determinante per evitare un eventuale data leak di qualunque tipo o evitare di pagare o ricevere multe rilasciate direttamete dal governo oppure enti competenti o qualunque altra azione imposta.
 
 ```{r warning=FALSE, message=FALSE}
-cramerV_table["Bribe/ransom paid", ]
+datatable(cramerV_table["Bribe/ransom paid", ])
 ```
 
-Come ci si aspettava il pagamento del riscatto non assicura la non diffusione e la conseguente cancellazzione dei dati prelevati in modo illecito ma tale risultato dopo tutto era scontato per il fatto che l'accordo viene fatto con dei criminale di cui di base non ci si può fidare e non si ha nessun tipo di garanzia che mi assicura la cancellazione dei dati.
+Come ci si poteva aspettare, il pagamento del riscatto non assicura la non diffusione e la conseguente cancellazzione dei dati prelevati in modo illecito. Tale risultato dopo tutto era scontato per il fatto che l'accordo viene fatto con dei criminale di cui di base non ci si può fidare e non si ha nessun tipo di garanzia che mi assicura la cancellazione dei dati.
 
 # CONCLUSIONI
 
-Negli ultimi 18 anni in linea generale il problema degli attacchi informatici con il conseguente data breach e l'eventuale pubblicazione dei dati nel dark web ha avuto una crescita esponenziale col passare degli anni aiutato anche dall'avanzamento tecnologico, per poi apparentemete "fermarsi" o rallentare nel 2019. 
-Tale riduzione è stata causata principalmete del COVID-19 data dal fatto che, come visto il vettore d'attacco principalmete usato sembra essere stato il furto, la violazione e la successiva infezione di esso, almeno per quanto riguarda il settore sanitario che è quello che è stato maggiormente attaccatto, la gente è stata costretta a restare chiusa in casa a causa del lockdown e a lavorare da casa i gruppi hacker hanno dovuto trovare nuovi vettori d'attacco e superare i sistemi di sicurezza introdotti per lo smart-working.
+Negli ultimi 18 anni, in linea generale, il problema degli attacchi informatici con il conseguente data breach, e l'eventuale pubblicazione dei dati nel dark web, ha avuto una crescita esponenziale col passare degli anni aiutato anche dall'avanzamento tecnologico per poi apparentemente "fermarsi" o rallentare nel 2019. 
+Tale riduzione è stata causata principalmete del COVID-19 dato che, come visto il vettore d'attacco principalmete usato sembra essere il furto e la violazione del dispositivo fisico e la successiva infezione di esso, almeno per quanto riguarda il settore sanitario, la gente è stata costretta a restare chiusa in casa e a lavorare da casa., i gruppi hacker hanno dovuto trovare nuovi vettori d'attacco e superare i sistemi di sicurezza introdotti per lo smart-working.
 
 In linea generale si può concludere che la sicurezza dei sistemi informatici deve partire dal minimizzare irischi portati dal **fattore umano** con una buona campagna di sensibilizzazione ed educazione del personale su tali tematiche.
 
