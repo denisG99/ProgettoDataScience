@@ -70,7 +70,7 @@ queensland <- queensland %>% select(c(-...44, -`Effect on share price`, -`Overal
 
 * *Overall nature of attack* è stato escluso perchè non è chiaro cosa indicano i valori per quel campo;
 * *...44* è un errore di esportazione a csv dal foglio excell;
-* *Effect on share price* non ci sono  molti valori non disponibili come mostrato in precedenza.
+* *Effect on share price* non ci sono  molti valori non disponibili, come mostrato in precedenza.
 
 ```{r message=FALSE, warning=FALSE}
 wiki <- wiki %>% select(-Sources)
@@ -171,7 +171,7 @@ attack_sector %>% ggplot() +
   theme_void()
 ```
 
-Da come viene mostrato dal grafico soprastante il settore che è stato maggiormente colpito è quello delle **Human health activities** con un totale di 318 attacchi il quale risulta circa il doppia del settore subito sotto, che è quello del **web** con un totale di 137 attacchi dal 2004 al 2022.
+Da come viene mostrato dal grafico soprastante il settore che è stato maggiormente colpito è quello delle **Human health activities** con un totale di 318 attacchi il quale risulta più del doppio del settore subito sotto, che è quello del **web** con un totale di 137 attacchi dal 2004 al 2022.
 
 ### Perchè il settore *Human health activities* è quello maggiormente attaccato?
 
@@ -206,7 +206,7 @@ do.call("grid.arrange", c(plots, ncol = 4))
 ```
 
 La prima cosa che scatta all'occhio che, senza alcun dubbio, il settore sanitario costituisce un settore critico e che, ovviamente, non ha un ruolo inerente alla cybersecurity.
-In generale a livello di sistemi di sicurezza il settore è messo abbastanza bene ma ci sono un paio di cose che sorgono all'occhio: uno dei modi principali per effettuare attacchi è sfruttare l'accesso remoto e in questo caso tali accessi sono protetti, nel maggior numero dei casi, appropriamente, ma la cosa più preoccupante che circa 200 aziende non usano la cifratura e in nessuna di queste ha una politica di educazione e sensibilizzazione del personale e non usano alcun cybersecurity framework il quale fornisce delle linee guida e le best practice per ottenere un sistema sicura.
+In generale a livello di sistemi di sicurezza il settore è messo abbastanza bene ma ci sono un paio di cose che saltano all'occhio: uno dei modi principali per effettuare attacchi è sfruttare l'accesso remoto e in questo caso tali accessi sono protetti, nel maggior numero dei casi, appropriamente, ma la cosa più preoccupante che circa 200 aziende non usano la cifratura e in nessuna di queste ha una politica di educazione e sensibilizzazione del personale e non usano alcun cybersecurity framework il quale fornisce delle linee guida e le best practice per ottenere un sistema sicura.
 
 Da questa analisi si potrebbe dedurre che il fatto dell'assenza di cifratura potrebbe essere una delle causa di un eventuale pubblicazione dei dati esfiltrati illecitamente, ma non spiega il perchè dell'attacco. 
 
@@ -344,7 +344,7 @@ Come ci si poteva aspettare, il pagamento del riscatto non assicura la non diffu
 # CONCLUSIONI
 
 Negli ultimi 18 anni, in linea generale, il problema degli attacchi informatici con il conseguente data breach, e l'eventuale pubblicazione dei dati nel dark web, ha avuto una crescita esponenziale col passare degli anni aiutato anche dall'avanzamento tecnologico per poi apparentemente "fermarsi" o rallentare nel 2019. 
-Tale riduzione è stata causata principalmete del COVID-19 dato che, come visto il vettore d'attacco principalmete usato sembra essere il furto e la violazione del dispositivo fisico e la successiva infezione di esso, almeno per quanto riguarda il settore sanitario, la gente è stata costretta a restare chiusa in casa e a lavorare da casa., i gruppi hacker hanno dovuto trovare nuovi vettori d'attacco e superare i sistemi di sicurezza introdotti per lo smart-working.
+Tale riduzione è stata causata principalmete del COVID-19 dato che, come visto il vettore d'attacco principalmete usato sembra essere il furto e la violazione del dispositivo fisico e la successiva infezione di esso, almeno per quanto riguarda il settore sanitario, la gente è stata costretta a restare chiusa in casa e a lavorare da casa, quindi i gruppi hacker hanno dovuto trovare nuovi vettori d'attacco e superare i sistemi di sicurezza introdotti per lo smart-working.
 
-In linea generale si può concludere che la sicurezza dei sistemi informatici deve partire dal minimizzare irischi portati dal **fattore umano** con una buona campagna di sensibilizzazione ed educazione del personale su tali tematiche.
+In linea generale si può concludere che la sicurezza dei sistemi informatici deve partire dal minimizzare i rischi portati dal **fattore umano** con una buona campagna di sensibilizzazione ed educazione del personale su tali tematiche.
 

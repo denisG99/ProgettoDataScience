@@ -195,7 +195,7 @@ attack_sector %>% ggplot() +
   theme_void()
 ```
 
-Da come viene mostrato dal grafico soprastante il settore che è stato maggiormente colpito è quello delle **Human health activities** con un totale di 318 attacchi il quale risulta circa il doppia del settore subito sotto, che è quello del **web** con un totale di 137 attacchi dal 2004 al 2022.
+Da come viene mostrato dal grafico soprastante il settore che è stato maggiormente colpito è quello delle **Human health activities** con un totale di 318 attacchi il quale risulta più del doppio del settore subito sotto, che è quello del **web** con un totale di 137 attacchi dal 2004 al 2022.
 
 ## Perchè il settore *Human health activities* è quello maggiormente attaccato?
 
@@ -227,7 +227,7 @@ for (feature in names(health %>% select(-`Attack type`, -`Attack vector`))) {
 do.call("grid.arrange", c(plots, ncol = 4))
 ```
 
-In generale a livello di sistemi di sicurezza ,il settore è messo abbastanza bene ma ci sono un paio di cose che sorgono all'occhio: 
+In generale a livello di sistemi di sicurezza ,il settore è messo abbastanza bene ma ci sono un paio di cose che saltano all'occhio: 
 
 * circa 200 aziende non usano la cifratura che è una possibile causa di un eventiuale pubblicazione dei dati esfiltrati illecitamete;
 * non usano alcun cybersecurity framework il quale fornisce delle linee guida e le best practice per ottenere un sistema sicuro;
@@ -374,7 +374,7 @@ Come ci si poteva aspettare, il pagamento del riscatto non assicura la non diffu
 ## Conclusioni
 
 Negli ultimi 18 anni, in linea generale, il problema degli attacchi informatici con il conseguente data breach, e l'eventuale pubblicazione dei dati nel dark web, ha avuto una crescita esponenziale col passare degli anni aiutato anche dall'avanzamento tecnologico per poi apparentemente "fermarsi" o rallentare nel 2019. 
-Tale riduzione è stata causata principalmete del COVID-19 dato che, come visto il vettore d'attacco principalmete usato sembra essere il furto e la violazione del dispositivo fisico e la successiva infezione di esso, almeno per quanto riguarda il settore sanitario, la gente è stata costretta a restare chiusa in casa e a lavorare da casa., i gruppi hacker hanno dovuto trovare nuovi vettori d'attacco e superare i sistemi di sicurezza introdotti per lo smart-working.
+Tale riduzione è stata causata principalmete del COVID-19 dato che, come visto il vettore d'attacco principalmete usato sembra essere il furto e la violazione del dispositivo fisico e la successiva infezione di esso, almeno per quanto riguarda il settore sanitario, la gente è stata costretta a restare chiusa in casa e a lavorare da casa, quindi i gruppi hacker hanno dovuto trovare nuovi vettori d'attacco e superare i sistemi di sicurezza introdotti per lo smart-working.
 
 In linea generale si può concludere che la sicurezza dei sistemi informatici deve partire dal minimizzare i rischi portati dal **fattore umano** con una buona campagna di sensibilizzazione ed educazione del personale su tali tematiche.
 
