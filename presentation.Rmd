@@ -66,6 +66,7 @@ library(stringr)
 library(rcompanion)
 library(gridExtra)
 library(DT)
+library(corrplot)
 ```
 
 ```{r warning=FALSE, message=FALSE, echo=FALSE}
@@ -329,11 +330,28 @@ for (row in names(sec_conseguences)[1 : 10])
 
 cramerV_table <- as.data.frame(cramerV_table)
 
-datatable(cramerV_table)
+#datatable(cramerV_table)
 ```
-In linea generale non c'è alcuna correlazione forte tra sistemi di sicurezza e conseguenze dell'attacco.
 
-Andiamo a commentare più nello specifico alcune caratteristiche di sicurezza come vanno a influire sulle conseguenze dell'attacco: **assenza di cifrature** e **pagamento del riscatto**.
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+corr_table <- as.matrix(cramerV_table)
+
+rownames(corr_table) <- str_c("r", {1 : 10})
+colnames(corr_table) <- str_c("k", {1 : 13})
+
+corrplot(corr_table, method = "ellipse")
+```
+
+
+In linea generale non c'è alcuna correlazione forte tra sistemi di sicurezza e conseguenze dell'attacco tranne per alcuni casi:
+
+* *r5 (Improper network segmentation)*-*k4 (Track1-Creadit card details leaked/exposed)*;
+* *r5 (Improper network segmentation)*-*k6 (Social security number/tax number leaked/exposed)*;
+* *r10 (Free identity or credit theft monitoring)*-*k6 (Social security number/tax number leaked/exposed)*.
+
+Andiamo a commentare più nello specifico alcune caratteristiche di sicurezza come vanno a influire sulle conseguenze dell'attacco: 
+
+* **assenza di cifrature**
 
 ```{r warning=FALSE, message=FALSE, echo=FALSE}
 datatable(cramerV_table["Absence of encryption", ])
@@ -341,6 +359,8 @@ datatable(cramerV_table["Absence of encryption", ])
 
 
 Se si tiene in considerazione l'assenza o meno della cifratura sembra non essere determinante per evitare un eventuale data leak di qualunque tipo o evitare di pagare o ricevere multe rilasciate direttamete dal governo oppure da enti competenti o qualunque altra azione imposta.
+
+* **pagamento del riscatto**
 
 ```{r warning=FALSE, message=FALSE, echo=FALSE}
 datatable(cramerV_table["Bribe/ransom paid", ])

@@ -298,7 +298,7 @@ consequences <- sec_conseguences %>% select(c(`Individual(s) name(s) leaked/expo
                                               `Undertook investigation` : `Settlement paid`))
 ```
 
-Per calcolare la V di Cramer necessito di crare le **tabelle di contingenza** tra turre le possibili coppie tramite la funzione 'table()' e su tale tabella vado a calcolare la V di Cramer.
+Per calcolare la V di Cramer necessito di crare le **tabelle di contingenza** tra tutte le possibili coppie tramite la funzione 'table()' e su tale tabella vado a calcolare la V di Cramer, come mostrato qua di seguito.
 
 ```{r warning=FALSE, message=FALSE}
 cramerV_table <-  matrix(0, nrow = 10, ncol = 13)
@@ -315,12 +315,17 @@ datatable(cramerV_table)
 ```
 
 ```{r warning=FALSE, message=FALSE}
-#TODO: sistemare
-corrplot(as.matrix(cramerV_table), method = "square")
+corr_table <- as.matrix(cramerV_table)
+
+rownames(corr_table) <- str_c("r", {1 : 10})
+colnames(corr_table) <- str_c("k", {1 : 13})
+
+corrplot(corr_table, method = "ellipse")
 ```
 
+Per fornire la rappresentazione qua sopra ho dovuto rinominare le righe e colonne per riuscire a fornire una rappresentazione comprensibile e leggibile.
 
-Dall'analisi della tabella soprastante tra sistemi di sicurezza implementati e le consegueze degli attacchi non c'è alcuna correlazione forte tranne per qualche eccezione.
+Dall'analisi della tabella soprastante tra sistemi di sicurezza implementati e le consegueze degli attacchi non c'è alcuna correlazione forte tranne nel caso di *r5 (Improper network segmentation)*-*k4 (Track1-Creadit card details leaked/exposed)*, *r5 (Improper network segmentation)*-*k6 (Social security number/tax number leaked/exposed)* e *r10 (Free identity or credit theft monitoring)*-*k6 (Social security number/tax number leaked/exposed)*.
 
 Andiamo a commentare più nello specifico alcune caratteristiche di sicurezza come vanno a influire sulle conseguenze dell'attacco: **assenza di cifrature** e **pagamento del riscatto**.
 
