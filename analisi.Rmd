@@ -166,7 +166,6 @@ attack_sector
 ```{r warning=FALSE, message=FALSE}
 attack_sector %>% ggplot() +
   geom_bar(aes(x = "", y = attacks, fill = Sector), stat = "identity", color = "white") +
-  #annotate("text", x = "", y = attacks, label = Sector) +
   coord_polar("y", start = 0) +
   theme_void()
 ```
@@ -189,7 +188,6 @@ health <- queensland %>% filter(Sector == "Human health activities") %>%
 ```
 
 ```{r warning=FALSE, message=FALSE}
-#TODO: vedere se è sostituibile con lapply
 plots <- list()
 
 for (feature in names(health %>% select(-`Attack type`, -`Attack vector`))) {
