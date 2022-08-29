@@ -9,7 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Il datasets presi in considerazione sono 3 e trattano principalmete i data breach avvenuti tra il 2004 e il 2022:
+Nella cronaca di questi ultimi 2 anni si è parlato molto di attacchi informatici, soprattutto di tipo ransomware con annesso data breach, e il loro numero è aumentato in tutti i settori mettendo così in luce lo scarso livello di sicurezza dei sistemi informatici(configurazione non corretta degli apparati, sistemi operativi e softwares non mantenuti aggiornati, non si sfruttano sistemi IDS, ...).
+
+I datasets presi in considerazione sono 3 e trattano principalmete i data breach avvenuti tra il 2004 e il 2022:
 
  * [link](https://espace.library.uq.edu.au/view/UQ:dfe5027) il quale contiene informazioni su data breach e ransomware tra il 2004 e l'inizio del 2020 raccolti dall'università del Queensland;
  * [link](https://en.wikipedia.org/wiki/List_of_data_breaches), che non è che il risultato di uno scrapping (per lo scrapping della pagina vedi script nel file *wiki_scrap.R*);
