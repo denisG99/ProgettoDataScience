@@ -126,9 +126,9 @@ names(data_breaches_2018_update)
 3. Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
 4. Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
 
-# Come sono cresciuti col passare gli anni gil attacchi?
+# Come sono cresciuti gli attacchi con il passare degli anni?
 
-## Come sono cresciuti col passare gli anni gil attacchi?
+## Come sono cresciuti gli attacchi con il passare degli anni?
 
 ```{r warning=FALSE, message=FALSE, echo=FALSE}
 split_date <- function(){
@@ -187,14 +187,11 @@ attack_sector <- attacks %>%
   summarise(attacks = n()) %>%
   filter(attacks > 30) %>%
   arrange(-attacks)
-
-#attack_sector
 ```
 
 ```{r warning=FALSE, message=FALSE, echo=FALSE}
 attack_sector %>% ggplot() +
   geom_bar(aes(x = "", y = attacks, fill = Sector), stat = "identity", color = "white") +
-  #annotate("text", x = "", y = attacks, label = Sector) +
   coord_polar("y", start = 0) +
   theme_void()
 ```
@@ -215,7 +212,6 @@ health <- queensland %>% filter(Sector == "Human health activities") %>%
 ```
 
 ```{r warning=FALSE, message=FALSE, echo=FALSE}
-#TODO: vedere se è sostituibile con lapply
 plots <- list()
 
 for (feature in names(health %>% select(-`Attack type`, -`Attack vector`))) {

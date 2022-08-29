@@ -97,7 +97,7 @@ data_breaches_2018_update <- data_breaches_2018_update %>%
 3. Com'è cresciuto il volume di dati esfiltrati con il passare del tempo?
 4. Che relazione esite tra sistemi di sicurezza implementati e le conseguenze di tale attacco?
 
-## Come sono cresciuti col passare gli anni gil attacchi?
+## Come sono cresciuti gli attacchi con il passare degli anni?
 
 ```{r warning=FALSE, message=FALSE}
 split_date <- function(){
