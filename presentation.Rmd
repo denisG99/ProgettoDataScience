@@ -1,7 +1,7 @@
 ---
 title: "Progetto di Fondamenti di Scienza dei Dati"
 author: "Denis Gasparollo"
-date: "2022-09-01"
+date: "2022-09-0"
 output:
   ioslides_presentation:
       css: ../style.css
